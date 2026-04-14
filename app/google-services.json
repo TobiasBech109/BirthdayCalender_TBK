@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "480758462915",
+    "project_id": "projectfiletok",
+    "storage_bucket": "projectfiletok.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:480758462915:android:7b312a15b750201f74e576",
+        "android_client_info": {
+          "package_name": "com.example.birthdaycalender"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgb640yV1G6BitftY7GXzIHdrA5FfPnnk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
