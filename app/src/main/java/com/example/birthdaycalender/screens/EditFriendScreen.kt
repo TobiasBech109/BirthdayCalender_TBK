@@ -19,7 +19,6 @@ fun EditFriendScreen(
             SimpleTopAppBar(title = "Edit", onLogout = onLogout)
         }
     ) { innerPadding ->
-        // We reuse the FriendFormContent from NewFriendScreen.kt
         FriendFormContent(
             modifier = Modifier.padding(innerPadding),
             initialFriend = friend,
