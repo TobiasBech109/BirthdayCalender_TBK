@@ -16,11 +16,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.birthdaycalender.data.Friend
 import com.example.birthdaycalender.screens.EditFriendScreen
 import com.example.birthdaycalender.screens.HomeScreen
+import com.example.birthdaycalender.screens.LoginScreen
 import com.example.birthdaycalender.screens.NewFriendScreen
 import com.example.birthdaycalender.ui.theme.BirthdayCalenderTheme
+import com.example.birthdaycalender.viewmodel.AuthenticationViewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -45,7 +48,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(authViewModel: AuthenticationViewModel = viewModel()) {
     var currentScreen by remember { mutableStateOf("home") }
     // Track which friend we are currently editing
     var editingFriend by remember { mutableStateOf<Friend?>(null) }
@@ -61,41 +64,50 @@ fun AppNavigation() {
     }
     var nextId by remember { mutableIntStateOf(4) }
 
-    when (currentScreen) {
-        "home" -> HomeScreen(
-            friends = friends,
-            onAdd = { currentScreen = "new" },
-            onEdit = { friend -> 
-                editingFriend = friend
-                currentScreen = "edit"
-            },
-            onDelete = { id ->
-                friends = friends.filter { it.id != id }
-            },
-            onLogout = { /* TODO: Implement Logout */ }
+    if (authViewModel.user == null) {
+        LoginScreen(
+            viewModel = authViewModel,
+            onLoginSuccess = { 
+                currentScreen = "home" 
+            }
         )
-        "new" -> NewFriendScreen(
-            onSave = { newFriend ->
-                friends = friends + newFriend.copy(id = nextId++)
-                currentScreen = "home"
-            },
-            onCancel = { currentScreen = "home" },
-            onLogout = { /* TODO: Implement Logout */ }
-        )
-        "edit" -> editingFriend?.let { friend ->
-            EditFriendScreen(
-                friend = friend,
-                onSave = { updatedFriend ->
-                    friends = friends.map { if (it.id == updatedFriend.id) updatedFriend else it }
-                    currentScreen = "home"
-                    editingFriend = null
+    } else {
+        when (currentScreen) {
+            "home" -> HomeScreen(
+                friends = friends,
+                onAdd = { currentScreen = "new" },
+                onEdit = { friend -> 
+                    editingFriend = friend
+                    currentScreen = "edit"
                 },
-                onCancel = { 
-                    currentScreen = "home"
-                    editingFriend = null
+                onDelete = { id ->
+                    friends = friends.filter { it.id != id }
                 },
-                onLogout = { /* TODO: Implement Logout */ }
+                onLogout = { authViewModel.signOut() }
             )
+            "new" -> NewFriendScreen(
+                onSave = { newFriend ->
+                    friends = friends + newFriend.copy(id = nextId++)
+                    currentScreen = "home"
+                },
+                onCancel = { currentScreen = "home" },
+                onLogout = { authViewModel.signOut() }
+            )
+            "edit" -> editingFriend?.let { friend ->
+                EditFriendScreen(
+                    friend = friend,
+                    onSave = { updatedFriend ->
+                        friends = friends.map { if (it.id == updatedFriend.id) updatedFriend else it }
+                        currentScreen = "home"
+                        editingFriend = null
+                    },
+                    onCancel = { 
+                        currentScreen = "home"
+                        editingFriend = null
+                    },
+                    onLogout = { authViewModel.signOut() }
+                )
+            }
         }
     }
 }
