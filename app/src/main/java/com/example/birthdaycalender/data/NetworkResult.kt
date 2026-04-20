@@ -1,4 +1,4 @@
-package com.example.birthdaylist.data
+package com.example.birthdaycalender.data
 
 sealed class NetworkResult<out T> {
     data class Success<out T>(val data: T) : NetworkResult<T>()

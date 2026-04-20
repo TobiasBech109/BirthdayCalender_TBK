@@ -38,7 +38,7 @@ fun HomeScreen(
     friends: List<Friend>,
     modifier: Modifier = Modifier,
     onAdd: () -> Unit,
-    onEdit: (Friend) -> Unit, // Changed to pass the whole Friend object
+    onEdit: (Friend) -> Unit,
     onDelete: (Int) -> Unit,
     onLogout: () -> Unit,
     navigateToLogin: () -> Unit = {},
@@ -109,7 +109,6 @@ fun FriendItem(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    // Format the birthday for display
     val birthdayDisplay = if (friend.birthDayOfMonth != null && friend.birthMonth != null) {
         "%02d.%02d.%d".format(friend.birthDayOfMonth, friend.birthMonth, friend.birthYear ?: 0)
     } else {

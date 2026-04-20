@@ -1,9 +1,9 @@
-package com.example.birthdaylist.dependencyinjection
+package com.example.birthdaycalender.dependencyinjection
 
-import com.example.birthdaylist.data.FriendsAPI
-import com.example.birthdaylist.data.FriendsRepository
-import com.example.birthdaylist.data.FriendsRepositoryImpl
-import com.example.birthdaylist.viewmodel.FriendsViewModel
+import com.example.birthdaycalender.data.FriendsAPI
+import com.example.birthdaycalender.data.FriendsRepository
+import com.example.birthdaycalender.data.FriendsRepositoryImpl
+import com.example.birthdaycalender.viewmodel.FriendsViewModel
 import kotlinx.coroutines.Dispatchers
 import org.koin.dsl.module
 import retrofit2.Retrofit

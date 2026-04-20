@@ -1,4 +1,4 @@
-package com.example.birthdaylist.data
+package com.example.birthdaycalender.data
 
 interface FriendsRepository {
     suspend fun getFriends(): NetworkResult<List<Friend>>

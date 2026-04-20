@@ -1,4 +1,3 @@
 package com.example.birthdaycalender
 
-class SingleFriendUIState {
-}
+class SingleFriendUIState {}
