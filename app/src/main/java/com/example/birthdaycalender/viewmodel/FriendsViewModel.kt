@@ -55,6 +55,22 @@ class FriendsViewModel(
         }
     }
 
+    // Added to support posting a Friend object directly as requested
+    fun addFriend(friend: Friend) {
+        _singleFriendUIState.update { it.copy(isLoading = true, error = null) }
+        viewModelScope.launch {
+            when (val result = friendsRepository.addFriend(friend)) {
+                is NetworkResult.Success -> {
+                    _singleFriendUIState.update { it.copy(isLoading = false, friend = result.data) }
+                    friend.userId?.let { getFriends(it) }
+                }
+                is NetworkResult.Error -> {
+                    _singleFriendUIState.update { it.copy(isLoading = false, error = result.error) }
+                }
+            }
+        }
+    }
+
     fun addFriend(userId: String, name: String, birthdayMillis: Long?) {
         _singleFriendUIState.update { it.copy(isLoading = true, error = null) }
 

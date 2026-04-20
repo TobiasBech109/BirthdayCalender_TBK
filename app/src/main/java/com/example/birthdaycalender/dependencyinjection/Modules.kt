@@ -17,9 +17,11 @@ val appModules = module {
 
     single {
         Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create())
             .baseUrl("https://birthdaysrest.azurewebsites.net/api/")
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-    single { get<Retrofit>().create(FriendsAPI::class.java) }
+    single { get<Retrofit>().create(FriendsAPI::class.java)}
+
+    single {FriendsRepositoryImpl(get(), get())}
 }

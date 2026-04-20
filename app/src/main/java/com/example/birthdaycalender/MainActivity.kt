@@ -10,13 +10,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.birthdaycalender.data.Friend
 import com.example.birthdaycalender.screens.EditFriendScreen
 import com.example.birthdaycalender.screens.HomeScreen
@@ -24,6 +28,8 @@ import com.example.birthdaycalender.screens.LoginScreen
 import com.example.birthdaycalender.screens.NewFriendScreen
 import com.example.birthdaycalender.ui.theme.BirthdayCalenderTheme
 import com.example.birthdaycalender.viewmodel.AuthenticationViewModel
+import com.example.birthdaycalender.viewmodel.FriendsViewModel
+import org.koin.androidx.compose.koinViewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -39,7 +45,7 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        AppNavigation()
+                        AppNavigation(modifier = Modifier.padding(innerPadding))
                     }
                 }
             }
@@ -48,66 +54,93 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation(authViewModel: AuthenticationViewModel = viewModel()) {
-    var currentScreen by remember { mutableStateOf("home") }
-    // Track which friend we are currently editing
-    var editingFriend by remember { mutableStateOf<Friend?>(null) }
-    
-    var friends by remember {
-        mutableStateOf(
-            listOf(
-                Friend(1, name = "John Doe", birthDayOfMonth = 12, birthMonth = 5, birthYear = 1990, age = 34),
-                Friend(2, name = "Jane Smith", birthDayOfMonth = 20, birthMonth = 11, birthYear = 1995, age = 28),
-                Friend(3, name = "Bob Johnson", birthDayOfMonth = 5, birthMonth = 1, birthYear = 2000, age = 24)
-            )
-        )
-    }
-    var nextId by remember { mutableIntStateOf(4) }
+fun AppNavigation(
+    modifier: Modifier = Modifier,
+    authViewModel: AuthenticationViewModel = viewModel()
+) {
+    val navController = rememberNavController()
+    val friendsViewModel: FriendsViewModel = koinViewModel()
+    val friendsUIState by friendsViewModel.friendsUIState.collectAsStateWithLifecycle()
+    val user = authViewModel.user
 
-    if (authViewModel.user == null) {
-        LoginScreen(
-            viewModel = authViewModel,
-            onLoginSuccess = { 
-                currentScreen = "home" 
+    LaunchedEffect(user) {
+        if (user == null) {
+            navController.navigate(NavRoutes.Login.route) {
+                popUpTo(0)
             }
-        )
-    } else {
-        when (currentScreen) {
-            "home" -> HomeScreen(
-                friends = friends,
-                onAdd = { currentScreen = "new" },
-                onEdit = { friend -> 
-                    editingFriend = friend
-                    currentScreen = "edit"
+        } else {
+            friendsViewModel.getFriends(user.uid)
+            navController.navigate(NavRoutes.FriendList.route) {
+                popUpTo(0)
+            }
+        }
+    }
+
+    NavHost(
+        navController = navController,
+        startDestination = if (user == null) NavRoutes.Login.route else NavRoutes.FriendList.route
+    ) {
+        composable(NavRoutes.Login.route) {
+            LoginScreen(
+                viewModel = authViewModel,
+                onLoginSuccess = {
+                    navController.navigate(NavRoutes.FriendList.route) {
+                        popUpTo(NavRoutes.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(NavRoutes.FriendList.route) {
+            HomeScreen(
+                friends = friendsUIState.friends,
+                modifier = modifier,
+                onAdd = { navController.navigate(NavRoutes.NewFriend.route) },
+                onEdit = { friend ->
+                    navController.navigate(NavRoutes.EditFriend.route + "/${friend.id}")
                 },
                 onDelete = { id ->
-                    friends = friends.filter { it.id != id }
+                    user?.let { friendsViewModel.deleteFriend(id, it.uid) }
                 },
-                onLogout = { authViewModel.signOut() }
+                onLogout = {
+                    authViewModel.signOut()
+                },
+                sortByName = { asc -> friendsViewModel.sortByName(asc) },
+                sortByAge = { asc -> friendsViewModel.sortByAge(asc) },
+                sortByBirthday = { asc -> friendsViewModel.sortByBirthday(asc) }
             )
-            "new" -> NewFriendScreen(
+        }
+        composable(
+            NavRoutes.EditFriend.route + "/{friendId}",
+            arguments = listOf(navArgument("friendId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val friendId = backStackEntry.arguments?.getInt("friendId")
+            val friend = friendsUIState.friends.find { it.id == friendId } ?: Friend(name = "Unknown")
+            
+            EditFriendScreen(
+                friend = friend,
+                onSave = { updatedFriend ->
+                    friendsViewModel.updateFriend(updatedFriend.id, updatedFriend)
+                    navController.popBackStack()
+                },
+                onCancel = { navController.popBackStack() },
+                onLogout = {
+                    authViewModel.signOut()
+                }
+            )
+        }
+        composable(NavRoutes.NewFriend.route) {
+            NewFriendScreen(
                 onSave = { newFriend ->
-                    friends = friends + newFriend.copy(id = nextId++)
-                    currentScreen = "home"
+                    user?.let {
+                        friendsViewModel.addFriend(newFriend.copy(userId = it.uid))
+                    }
+                    navController.popBackStack()
                 },
-                onCancel = { currentScreen = "home" },
-                onLogout = { authViewModel.signOut() }
+                onCancel = { navController.popBackStack() },
+                onLogout = {
+                    authViewModel.signOut()
+                }
             )
-            "edit" -> editingFriend?.let { friend ->
-                EditFriendScreen(
-                    friend = friend,
-                    onSave = { updatedFriend ->
-                        friends = friends.map { if (it.id == updatedFriend.id) updatedFriend else it }
-                        currentScreen = "home"
-                        editingFriend = null
-                    },
-                    onCancel = { 
-                        currentScreen = "home"
-                        editingFriend = null
-                    },
-                    onLogout = { authViewModel.signOut() }
-                )
-            }
         }
     }
 }

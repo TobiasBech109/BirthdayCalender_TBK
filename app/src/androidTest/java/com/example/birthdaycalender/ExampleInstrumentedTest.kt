@@ -1,24 +1,38 @@
 package com.example.birthdaycalender
 
-import androidx.test.platform.app.InstrumentationRegistry
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
-
+import com.example.birthdaycalender.data.Friend
+import com.example.birthdaycalender.screens.HomeScreen
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import org.junit.Assert.*
-
-/**
- * Instrumented test, which will execute on an Android device.
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
 @RunWith(AndroidJUnit4::class)
-class ExampleInstrumentedTest {
+class HomeScreenTest {
+    @get:Rule
+    val composeTestRule = createComposeRule()
+
     @Test
-    fun useAppContext() {
-        // Context of the app under test.
-        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.example.birthdaycalender", appContext.packageName)
+    fun homeScreenNameTest() {
+        val friend1 = Friend(id = 1, name = "Patrick", birthYear = 1998, birthMonth = 3)
+        val friend2 = Friend(id = 2, name = "Valdemar", birthYear = 1997, birthMonth = 7)
+        val myFriends = listOf(friend1, friend2)
+
+        composeTestRule.setContent {
+            HomeScreen(
+                friends = myFriends,
+                onAdd = {},
+                onEdit = {},
+                onDelete = {},
+                onLogout = {},
+                navigateToLogin = {}
+            )
+        }
+
+        composeTestRule.onNodeWithText("Patrick").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Valdemar").assertIsDisplayed()
     }
 }
