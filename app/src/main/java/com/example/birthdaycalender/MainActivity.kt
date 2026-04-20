@@ -119,7 +119,11 @@ fun AppNavigation(
             EditFriendScreen(
                 friend = friend,
                 onSave = { updatedFriend ->
-                    friendsViewModel.updateFriend(updatedFriend.id, updatedFriend)
+                    // Make sure we pass the user ID so the repository can filter correctly after refresh
+                    user?.let { 
+                        val friendToUpdate = updatedFriend.copy(userId = it.uid)
+                        friendsViewModel.updateFriend(friendToUpdate.id, friendToUpdate) 
+                    }
                     navController.popBackStack()
                 },
                 onCancel = { navController.popBackStack() },

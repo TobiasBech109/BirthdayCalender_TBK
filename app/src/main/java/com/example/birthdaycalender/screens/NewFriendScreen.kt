@@ -116,7 +116,7 @@ fun FriendFormContent(
                     val calculatedAge = y?.let { Calendar.getInstance().get(Calendar.YEAR) - it }
 
                     val friend = Friend(
-                        id = 0,
+                        id = initialFriend?.id ?: 0,
                         userId = initialFriend?.userId,
                         name = name,
                         birthDayOfMonth = d,
