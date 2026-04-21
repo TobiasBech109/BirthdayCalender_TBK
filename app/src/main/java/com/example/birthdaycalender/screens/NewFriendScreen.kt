@@ -40,8 +40,6 @@ fun FriendFormContent(
     onCancel: () -> Unit
 ) {
     var name by remember { mutableStateOf(initialFriend?.name ?: "") }
-
-    // Safe formatting to prevent crashes if values are null
     val initialDateStr = if (initialFriend != null) {
         val d = initialFriend.birthDayOfMonth ?: 0
         val m = initialFriend.birthMonth ?: 0

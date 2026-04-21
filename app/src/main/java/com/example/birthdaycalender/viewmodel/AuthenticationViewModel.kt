@@ -17,7 +17,6 @@ class AuthenticationViewModel : ViewModel() {
     var message by mutableStateOf("")
 
     fun signIn(email: String, password: String) {
-        //viewModelScope.launch {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -30,12 +29,10 @@ class AuthenticationViewModel : ViewModel() {
             }
         //}
     }
-
     fun signOut() {
         user = null
         auth.signOut()
     }
-
     fun register(email: String, password: String) {
         viewModelScope.launch {
             auth.createUserWithEmailAndPassword(email, password)

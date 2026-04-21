@@ -11,7 +11,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,9 +21,12 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +60,8 @@ fun HomeScreen(
     var nameAsc by remember { mutableStateOf(true) }
     var ageAsc by remember { mutableStateOf(true) }
     var birthdayAsc by remember { mutableStateOf(true) }
+    var showFilterSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
 
     Scaffold(
         topBar = {
@@ -94,7 +101,7 @@ fun HomeScreen(
                         },
                         modifier = Modifier.padding(horizontal = 2.dp)
                     ) {
-                        Text("Year ${if (ageAsc) "↑" else "↓"}", style = MaterialTheme.typography.bodySmall)
+                        Text("Age ${if (ageAsc) "↑" else "↓"}", style = MaterialTheme.typography.bodySmall)
                     }
                     TextButton(
                         onClick = {
@@ -106,7 +113,7 @@ fun HomeScreen(
                         Text("Date ${if (birthdayAsc) "↑" else "↓"}", style = MaterialTheme.typography.bodySmall)
                     }
                 }
-                Button(onClick = { /* TODO: Open Filter */ }) {
+                Button(onClick = { showFilterSheet = true }) {
                     Text("Filter")
                 }
             }
@@ -123,6 +130,105 @@ fun HomeScreen(
                     )
                 }
             }
+        }
+
+        if (showFilterSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showFilterSheet = false },
+                sheetState = sheetState
+            ) {
+                FilterContent(
+                    onFilterByName = filterByName,
+                    onFilterByAge = filterByAge,
+                    onClose = { showFilterSheet = false }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun FilterContent(
+    onFilterByName: (String) -> Unit,
+    onFilterByAge: (Int, Int) -> Unit,
+    onClose: () -> Unit
+) {
+    var searchText by remember { mutableStateOf("") }
+    var minAge by remember { mutableStateOf("") }
+    var maxAge by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text("Filter Friends", style = MaterialTheme.typography.headlineSmall)
+
+        OutlinedTextField(
+            value = searchText,
+            onValueChange = {
+                searchText = it
+                onFilterByName(it)
+            },
+            label = { Text("Search by name") },
+            modifier = Modifier.fillMaxWidth(),
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            trailingIcon = {
+                if (searchText.isNotEmpty()) {
+                    IconButton(onClick = { 
+                        searchText = ""
+                        onFilterByName("")
+                    }) {
+                        Icon(Icons.Default.Close, contentDescription = "Clear")
+                    }
+                }
+            }
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                value = minAge,
+                onValueChange = { minAge = it },
+                label = { Text("Min Age") },
+                modifier = Modifier.weight(1f)
+            )
+            OutlinedTextField(
+                value = maxAge,
+                onValueChange = { maxAge = it },
+                label = { Text("Max Age") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Button(
+            onClick = {
+                val min = minAge.toIntOrNull() ?: 0
+                val max = maxAge.toIntOrNull() ?: 120
+                onFilterByAge(min, max)
+                onClose()
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Apply Age Filter")
+        }
+
+        TextButton(
+            onClick = {
+                searchText = ""
+                minAge = ""
+                maxAge = ""
+                onFilterByName("")
+                onFilterByAge(0, 120)
+                onClose()
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Clear All Filters")
         }
     }
 }

@@ -52,7 +52,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 @Composable
 fun AppNavigation(
     modifier: Modifier = Modifier,
@@ -106,7 +105,9 @@ fun AppNavigation(
                 },
                 sortByName = { asc -> friendsViewModel.sortByName(asc) },
                 sortByAge = { asc -> friendsViewModel.sortByAge(asc) },
-                sortByBirthday = { asc -> friendsViewModel.sortByBirthday(asc) }
+                sortByBirthday = { asc -> friendsViewModel.sortByBirthday(asc) },
+                filterByName = { name -> friendsViewModel.filterByName(name) },
+                filterByAge = { min, max -> friendsViewModel.filterByAge(min, max) }
             )
         }
         composable(
@@ -119,7 +120,6 @@ fun AppNavigation(
             EditFriendScreen(
                 friend = friend,
                 onSave = { updatedFriend ->
-                    // Make sure we pass the user ID so the repository can filter correctly after refresh
                     user?.let { 
                         val friendToUpdate = updatedFriend.copy(userId = it.uid)
                         friendsViewModel.updateFriend(friendToUpdate.id, friendToUpdate) 
