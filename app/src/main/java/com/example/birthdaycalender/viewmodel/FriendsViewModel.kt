@@ -54,8 +54,6 @@ class FriendsViewModel(
             }
         }
     }
-
-    // Added to support posting a Friend object directly as requested
     fun addFriend(friend: Friend) {
         _singleFriendUIState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
@@ -71,44 +69,44 @@ class FriendsViewModel(
         }
     }
 
-    fun addFriend(userId: String, name: String, birthdayMillis: Long?) {
-        _singleFriendUIState.update { it.copy(isLoading = true, error = null) }
-
-        var birthYear: Int? = null
-        var birthMonth: Int? = null
-        var birthDay: Int? = null
-
-        if (birthdayMillis != null) {
-            val convert = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-            convert.timeInMillis = birthdayMillis
-            birthYear = convert.get(Calendar.YEAR)
-            birthMonth = convert.get(Calendar.MONTH) + 1
-            birthDay = convert.get(Calendar.DAY_OF_MONTH)
-        }
-
-        val friend = Friend(
-            id = -1,
-            userId = userId,
-            name = name.trim(),
-            birthYear = birthYear,
-            birthMonth = birthMonth,
-            birthDayOfMonth = birthDay,
-            remarks = null,
-            age = null,
-        )
-
-        viewModelScope.launch {
-            when (val result = friendsRepository.addFriend(friend)) {
-                is NetworkResult.Success -> {
-                    _singleFriendUIState.update { it.copy(isLoading = false, friend = result.data) }
-                    getFriends(userId)
-                }
-                is NetworkResult.Error -> {
-                    _singleFriendUIState.update { it.copy(isLoading = false, error = result.error) }
-                }
-            }
-        }
-    }
+//    fun addFriend(userId: String, name: String, birthdayMillis: Long?) {
+//        _singleFriendUIState.update { it.copy(isLoading = true, error = null) }
+//
+//        var birthYear: Int? = null
+//        var birthMonth: Int? = null
+//        var birthDay: Int? = null
+//
+//        if (birthdayMillis != null) {
+//            val convert = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+//            convert.timeInMillis = birthdayMillis
+//            birthYear = convert.get(Calendar.YEAR)
+//            birthMonth = convert.get(Calendar.MONTH) + 1
+//            birthDay = convert.get(Calendar.DAY_OF_MONTH)
+//        }
+//
+//        val friend = Friend(
+//            id = -1,
+//            userId = userId,
+//            name = name.trim(),
+//            birthYear = birthYear,
+//            birthMonth = birthMonth,
+//            birthDayOfMonth = birthDay,
+//            remarks = null,
+//            age = null,
+//        )
+//
+//        viewModelScope.launch {
+//            when (val result = friendsRepository.addFriend(friend)) {
+//                is NetworkResult.Success -> {
+//                    _singleFriendUIState.update { it.copy(isLoading = false, friend = result.data) }
+//                    getFriends(userId)
+//                }
+//                is NetworkResult.Error -> {
+//                    _singleFriendUIState.update { it.copy(isLoading = false, error = result.error) }
+//                }
+//            }
+//        }
+//    }
 
     fun deleteFriend(id: Int, userId: String) {
         _singleFriendUIState.update { it.copy(isLoading = true, error = null) }

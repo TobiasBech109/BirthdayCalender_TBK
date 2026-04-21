@@ -6,6 +6,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.birthdaycalender.viewmodel.AuthenticationViewModel
 
@@ -14,15 +15,28 @@ fun LoginScreen(
     viewModel: AuthenticationViewModel,
     onLoginSuccess: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var isRegistering by remember { mutableStateOf(false) }
-
     LaunchedEffect(viewModel.user) {
         if (viewModel.user != null) {
             onLoginSuccess()
         }
     }
+
+    LoginContent(
+        message = viewModel.message,
+        onLogin = { email, password -> viewModel.signIn(email, password) },
+        onRegister = { email, password -> viewModel.register(email, password) }
+    )
+}
+
+@Composable
+fun LoginContent(
+    message: String = "",
+    onLogin: (String, String) -> Unit = { _, _ -> },
+    onRegister: (String, String) -> Unit = { _, _ -> }
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var isRegistering by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -55,9 +69,9 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        if (viewModel.message.isNotEmpty()) {
+        if (message.isNotEmpty()) {
             Text(
-                text = viewModel.message,
+                text = message,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -68,9 +82,9 @@ fun LoginScreen(
         Button(
             onClick = {
                 if (isRegistering) {
-                    viewModel.register(email, password)
+                    onRegister(email, password)
                 } else {
-                    viewModel.signIn(email, password)
+                    onLogin(email, password)
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -89,4 +103,10 @@ fun LoginScreen(
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    LoginContent()
 }
